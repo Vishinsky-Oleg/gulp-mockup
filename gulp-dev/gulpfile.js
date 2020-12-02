@@ -6,7 +6,7 @@ const gulp = require("gulp"),
     cleanCSS = require("gulp-clean-css"),
     sourcemaps = require("gulp-sourcemaps"),
     concat = require("gulp-concat"),
-    uglify = require("gulp-uglify"),
+    uglify = require("gulp-uglify-es").default,
     lineec = require("gulp-line-ending-corrector");
 
 const root = "../"; //Root folder
