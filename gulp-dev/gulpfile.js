@@ -7,6 +7,7 @@ const gulp = require("gulp"),
     sourcemaps = require("gulp-sourcemaps"),
     concat = require("gulp-concat"),
     uglify = require("gulp-uglify-es").default,
+    babel = require('gulp-babel'),
     lineec = require("gulp-line-ending-corrector");
 
 const root = "../"; //Root folder
@@ -21,7 +22,8 @@ const pagesWatchFiles = root + "**/*.html", //Files that is gonna be changed
 
 const jsSRC = [
     //order in which js files will be processed
-    js + "main.js",
+    // js + "another.js",
+    js + "main.js"
     // vendor + "jquery-2.1.1.min.js",
     // vendor + "bootstrap.js",
     // vendor + "jquery.magnific-popup.min.js",
@@ -36,7 +38,9 @@ const cssSRC = [
 function css() {
     return gulp
         .src([scss + "style.scss"]) //sass file to compile
-        .pipe(sourcemaps.init({ loadMaps: true }))
+        .pipe(sourcemaps.init({
+            loadMaps: true
+        }))
         .pipe(
             sass({
                 outputStyle: "expanded",
@@ -51,7 +55,10 @@ function css() {
 function concatCSS() {
     return gulp
         .src(cssSRC) //array with all css files with particular order
-        .pipe(sourcemaps.init({ loadMaps: true, largeFile: true }))
+        .pipe(sourcemaps.init({
+            loadMaps: true,
+            largeFile: true
+        }))
         .pipe(concat("style.min.css")) //name of minified final css file
         .pipe(cleanCSS())
         .pipe(sourcemaps.write("./")) //css maps gonna go in the same folder as final file
@@ -62,9 +69,14 @@ function concatCSS() {
 function javascript() {
     return gulp
         .src(jsSRC) //minify array of js files ordered in particular maner
-        .pipe(concat("main.js"))
+        .pipe(sourcemaps.init())
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
+        .pipe(concat("main.min.js"))
         .pipe(uglify())
         .pipe(lineec())
+        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest(jsdist)); //destination for final minified js script
 }
 
