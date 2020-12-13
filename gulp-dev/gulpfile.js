@@ -7,7 +7,9 @@ const gulp = require("gulp"),
     sourcemaps = require("gulp-sourcemaps"),
     concat = require("gulp-concat"),
     uglify = require("gulp-uglify-es").default,
-    babel = require('gulp-babel'),
+    babel = require("gulp-babel"),
+    imagemin = require("gulp-imagemin"),
+    changed = require("gulp-changed"),
     lineec = require("gulp-line-ending-corrector");
 
 const root = "../"; //Root folder
@@ -23,7 +25,7 @@ const pagesWatchFiles = root + "**/*.html", //Files that is gonna be changed
 const jsSRC = [
     //order in which js files will be processed
     // js + "another.js",
-    js + "main.js"
+    js + "main.js",
     // vendor + "jquery-2.1.1.min.js",
     // vendor + "bootstrap.js",
     // vendor + "jquery.magnific-popup.min.js",
@@ -35,12 +37,17 @@ const cssSRC = [
     root + "src/css/style.css", //compiled sass
 ];
 
+const imgSRC = root + "src/img/*",
+    imgDist = root + "dist/img";
+
 function css() {
     return gulp
         .src([scss + "style.scss"]) //sass file to compile
-        .pipe(sourcemaps.init({
-            loadMaps: true
-        }))
+        .pipe(
+            sourcemaps.init({
+                loadMaps: true,
+            })
+        )
         .pipe(
             sass({
                 outputStyle: "expanded",
@@ -55,10 +62,12 @@ function css() {
 function concatCSS() {
     return gulp
         .src(cssSRC) //array with all css files with particular order
-        .pipe(sourcemaps.init({
-            loadMaps: true,
-            largeFile: true
-        }))
+        .pipe(
+            sourcemaps.init({
+                loadMaps: true,
+                largeFile: true,
+            })
+        )
         .pipe(concat("style.min.css")) //name of minified final css file
         .pipe(cleanCSS())
         .pipe(sourcemaps.write("./")) //css maps gonna go in the same folder as final file
@@ -70,14 +79,36 @@ function javascript() {
     return gulp
         .src(jsSRC) //minify array of js files ordered in particular maner
         .pipe(sourcemaps.init())
-        .pipe(babel({
-            presets: ['@babel/env']
-        }))
+        .pipe(
+            babel({
+                presets: ["@babel/env"],
+            })
+        )
         .pipe(concat("main.min.js"))
         .pipe(uglify())
         .pipe(lineec())
-        .pipe(sourcemaps.write('./'))
+        .pipe(sourcemaps.write("./"))
         .pipe(gulp.dest(jsdist)); //destination for final minified js script
+}
+
+function imgmin() {
+    return gulp
+        .src(imgSRC)
+        .pipe(changed(imgDist))
+        .pipe(
+            imagemin([
+                imagemin.gifsicle({
+                    interlaced: true,
+                }),
+                imagemin.mozjpeg({
+                    progressive: true,
+                }),
+                imagemin.optipng({
+                    optimizationLevel: 5,
+                }),
+            ])
+        )
+        .pipe(gulp.dest(imgDist));
 }
 
 function watch() {
@@ -88,15 +119,18 @@ function watch() {
     });
     gulp.watch(styleWatchFiles, gulp.series([css, concatCSS]));
     gulp.watch(jsSRC, javascript);
-    gulp.watch([jsdist + "main.js", cssdist + "style.min.css", pagesWatchFiles]).on(
-        "change",
-        browserSync.reload
-    );
+    gulp.watch(imgSRC, imgmin);
+    gulp.watch([
+        jsdist + "main.min.js",
+        cssdist + "style.min.css",
+        pagesWatchFiles,
+    ]).on("change", browserSync.reload);
 }
 //exporting functions
 exports.css = css;
 exports.concatCSS = concatCSS;
 exports.javascript = javascript;
+exports.imgmin = imgmin;
 exports.watch = watch;
 
 const build = gulp.parallel(watch);

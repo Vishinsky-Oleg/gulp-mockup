@@ -38,8 +38,8 @@ const cssSRC = [
     root + "src/css/style.css" //compiled
 ];
 
-const imgSRC = root + 'src/image/*',
-    imgDist = root + 'dist/image';
+const imgSRC = root + 'src/img/*',
+    imgDist = root + 'dist/img';
 
 
 function css() {
